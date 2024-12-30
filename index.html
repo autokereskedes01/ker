@@ -3,41 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Járműnyilvántartás</title>
+    <title>Gépjármű Nyilvántartás</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Járműnyilvántartás</h1>
-    <button id="addVehicleBtn">Autó hozzáadása</button>
-    <div id="vehicleList"></div>
-
-    <!-- Felugró ablak a jármű hozzáadásához -->
-    <div id="addVehicleModal" class="modal">
-        <div class="modal-content">
-            <span class="closeBtn">&times;</span>
-            <h2>Autó hozzáadása</h2>
-            <form id="addVehicleForm">
-                <label for="licensePlate">Rendszám:</label>
-                <input type="text" id="licensePlate" name="licensePlate" required>
-                <label for="type">Típus:</label>
-                <input type="text" id="type" name="type" required>
-                <label for="owner">Tulajdonos:</label>
-                <input type="text" id="owner" name="owner" required>
-                <label for="notes">Megjegyzés:</label>
-                <textarea id="notes" name="notes"></textarea>
-                <label for="status">Státusz:</label>
-                <select id="status" name="status">
-                    <option value="processing">Feldolgozásra vár (kék)</option>
-                    <option value="completed">Kész (zöld)</option>
-                    <option value="faulty">Hibás (piros)</option>
-                    <option value="inTransit">Futárnál van (sárga)</option>
-                    <option value="returned">Leadósra kiküldve (fekete)</option>
-                </select>
-                <button type="submit">Hozzáadás</button>
-            </form>
-        </div>
+    <h1>Gépjármű Nyilvántartás</h1>
+    <div id="searchContainer">
+        <input type="text" id="searchInput" placeholder="Keresés...">
     </div>
-
+    <button id="addCarButton">Autó hozzáadása</button>
+    <table id="carTable">
+        <thead>
+            <tr>
+                <th>Rendszám</th>
+                <th>Típus</th>
+                <th>Tulajdonos</th>
+                <th>Megjegyzés</th>
+                <th>Állapot</th>
+                <th>Műveletek</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    
+    <div id="carFormModal" style="display:none;">
+        <input type="text" id="licensePlate" placeholder="Rendszám">
+        <input type="text" id="carType" placeholder="Típus">
+        <input type="text" id="owner" placeholder="Tulajdonos">
+        <input type="text" id="note" placeholder="Megjegyzés">
+        <select id="status">
+            <option value="in-office" selected>Irodában van</option>
+            <option value="completed">Kész</option>
+            <option value="faulty">Hibás</option>
+            <option value="with-courier">Futárnál van</option>
+            <option value="at-dropoff">Leadós helyen van</option>
+        </select>
+        <button id="saveButton">Mentés</button>
+        <button id="cancelButton">Mégse</button>
+    </div>
+    
     <script src="script.js"></script>
 </body>
 </html>
