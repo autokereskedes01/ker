@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Járműnyilvántartás</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Járműnyilvántartás</h1>
+    <button id="addVehicleBtn">Autó hozzáadása</button>
+    <div id="vehicleList"></div>
+
+    <!-- Felugró ablak a jármű hozzáadásához -->
+    <div id="addVehicleModal" class="modal">
+        <div class="modal-content">
+            <span class="closeBtn">&times;</span>
+            <h2>Autó hozzáadása</h2>
+            <form id="addVehicleForm">
+                <label for="licensePlate">Rendszám:</label>
+                <input type="text" id="licensePlate" name="licensePlate" required>
+                <label for="type">Típus:</label>
+                <input type="text" id="type" name="type" required>
+                <label for="owner">Tulajdonos:</label>
+                <input type="text" id="owner" name="owner" required>
+                <label for="notes">Megjegyzés:</label>
+                <textarea id="notes" name="notes"></textarea>
+                <label for="status">Státusz:</label>
+                <select id="status" name="status">
+                    <option value="processing">Feldolgozásra vár (kék)</option>
+                    <option value="completed">Kész (zöld)</option>
+                    <option value="faulty">Hibás (piros)</option>
+                    <option value="inTransit">Futárnál van (sárga)</option>
+                    <option value="returned">Leadósra kiküldve (fekete)</option>
+                </select>
+                <button type="submit">Hozzáadás</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
