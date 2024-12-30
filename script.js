@@ -1,121 +1,169 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const addVehicleBtn = document.getElementById('addVehicleBtn');
-    const addVehicleModal = document.getElementById('addVehicleModal');
-    const closeBtn = document.querySelector('.closeBtn');
-    const addVehicleForm = document.getElementById('addVehicleForm');
-    const vehicleList = document.getElementById('vehicleList');
-    let vehicles = JSON.parse(localStorage.getItem('vehicles')) || [];
+let editIndex = null;
 
-    function saveVehicles() {
-        localStorage.setItem('vehicles', JSON.stringify(vehicles));
-    }
-
-    function renderVehicles() {
-        vehicleList.innerHTML = '';
-        vehicles.forEach((vehicle, index) => {
-            const vehicleDiv = document.createElement('div');
-            vehicleDiv.className = 'vehicle';
-            vehicleDiv.innerHTML = `
-                <div>
-                    <h3>${vehicle.licensePlate}</h3>
-                    <p>Típus: ${vehicle.type}</p>
-                    <p>Tulajdonos: ${vehicle.owner}</p>
-                    <p>Megjegyzés: ${vehicle.notes}</p>
-                    <p>Dátum: ${vehicle.date}</p>
-                </div>
-                <div class="status ${vehicle.status}">${vehicle.statusText}</div>
-                <button onclick="editVehicle(${index})">Szerkesztés</button>
-                <button onclick="deleteVehicle(${index})">Törlés</button>
-            `;
-            vehicleList.appendChild(vehicleDiv);
-        });
-    }
-
-    addVehicleBtn.addEventListener('click', () => {
-        addVehicleModal.style.display = 'block';
-    });
-
-    closeBtn.addEventListener('click', () => {
-        addVehicleModal.style.display = 'none';
-    });
-
-    window.addEventListener('click', (event) => {
-        if (event.target == addVehicleModal) {
-            addVehicleModal.style.display = 'none';
-        }
-    });
-
-    addVehicleForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        const formData = new FormData(addVehicleForm);
-        const newVehicle = {
-            licensePlate: formData.get('licensePlate'),
-            type: formData.get('type'),
-            owner: formData.get('owner'),
-            notes: formData.get('notes'),
-            status: formData.get('status'),
-            statusText: addVehicleForm.status.options[addVehicleForm.status.selectedIndex].text,
-            date: new Date().toLocaleDateString()
-        };
-        vehicles.push(newVehicle);
-        saveVehicles();
-        renderVehicles();
-        addVehicleModal.style.display = 'none';
-        addVehicleForm.reset();
-    });
-
-    window.editVehicle = function(index) {
-        const vehicle = vehicles[index];
-        addVehicleModal.style.display = 'block';
-        addVehicleForm.licensePlate.value = vehicle.licensePlate;
-        addVehicleForm.type.value = vehicle.type;
-        addVehicleForm.owner.value = vehicle.owner;
-        addVehicleForm.notes.value = vehicle.notes;
-        addVehicleForm.status.value = vehicle.status;
-        addVehicleForm.querySelector('button[type="submit"]').textContent = 'Mentés';
-        addVehicleForm.onsubmit = function(event) {
-            event.preventDefault();
-            vehicle.licensePlate = addVehicleForm.licensePlate.value;
-            vehicle.type = addVehicleForm.type.value;
-            vehicle.owner = addVehicleForm.owner.value;
-            vehicle.notes = addVehicleForm.notes.value;
-            vehicle.status = addVehicleForm.status.value;
-            vehicle.statusText = addVehicleForm.status.options[addVehicleForm.status.selectedIndex].text;
-            saveVehicles();
-            renderVehicles();
-            addVehicleModal.style.display = 'none';
-            addVehicleForm.reset();
-            addVehicleForm.querySelector('button[type="submit"]').textContent = 'Hozzáadás';
-            addVehicleForm.onsubmit = addVehicleFormSubmit;
-        };
-    };
-
-    window.deleteVehicle = function(index) {
-        vehicles.splice(index, 1);
-        saveVehicles();
-        renderVehicles();
-    };
-
-    renderVehicles();
+document.getElementById('addCarButton').addEventListener('click', function() {
+    document.getElementById('carFormModal').style.display = 'block';
+    clearForm();
 });
 
-function addVehicleFormSubmit(event) {
-    event.preventDefault();
-    const formData = new FormData(addVehicleForm);
-    const newVehicle = {
-        licensePlate: formData.get('licensePlate'),
-        type: formData.get('type'),
-        owner: formData.get('owner'),
-        notes: formData.get('notes'),
-        status: formData.get('status'),
-        statusText: addVehicleForm.status.options[addVehicleForm.status.selectedIndex].text,
-        date: new Date().toLocaleDateString()
-    };
-    vehicles.push(newVehicle);
-    saveVehicles();
-    renderVehicles();
-    addVehicleModal.style.display = 'none';
-    addVehicleForm.reset();
+document.getElementById('cancelButton').addEventListener('click', function() {
+    document.getElementById('carFormModal').style.display = 'none';
+    editIndex = null; // Visszaállítja az editIndex értékét
+    clearForm(); // Törli a form mezőit
+});
+
+document.getElementById('saveButton').addEventListener('click', function() {
+    const licensePlate = document.getElementById('licensePlate').value;
+    const carType = document.getElementById('carType').value;
+    const owner = document.getElementById('owner').value;
+    const note = document.getElementById('note').value;
+    const status = document.getElementById('status').value;
+
+    const carTable = document.getElementById('carTable').getElementsByTagName('tbody')[0];
+
+    if (editIndex === null) {
+        const newRow = carTable.insertRow();
+
+        newRow.insertCell(0).textContent = licensePlate;
+        newRow.insertCell(1).textContent = carType;
+        newRow.insertCell(2).textContent = owner;
+        newRow.insertCell(3).textContent = note;
+        newRow.insertCell(4).innerHTML = `<span class="status ${status}">${getStatusText(status)}</span>`;
+        newRow.insertCell(5).innerHTML = '<div class="action-buttons"><button class="editButton">Szerkesztés</button><button class="deleteButton">Törlés</button></div>';
+
+        const editButton = newRow.getElementsByClassName('editButton')[0];
+        const deleteButton = newRow.getElementsByClassName('deleteButton')[0];
+        
+        editButton.addEventListener('click', function() {
+            editCar(newRow);
+        });
+
+        deleteButton.addEventListener('click', function() {
+            if (confirm('Biztosan törölni szeretnéd ezt az autót?')) {
+                deleteCar(newRow);
+            }
+        });
+    } else {
+        const row = carTable.rows[editIndex];
+        row.cells[0].textContent = licensePlate;
+        row.cells[1].textContent = carType;
+        row.cells[2].textContent = owner;
+        row.cells[3].textContent = note;
+        row.cells[4].innerHTML = `<span class="status ${status}">${getStatusText(status)}</span>`;
+        editIndex = null;
+    }
+
+    document.getElementById('carFormModal').style.display = 'none';
+    saveData();
+    clearForm();
+});
+
+document.getElementById('searchInput').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    const rows = document.getElementById('carTable').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+    for (let i = 0; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName('td');
+        let found = false;
+        for (let j = 0; j < cells.length; j++) {
+            if (cells[j].textContent.toLowerCase().includes(filter)) {
+                found = true;
+                break;
+            }
+        }
+        rows[i].style.display = found ? '' : 'none';
+    }
+});
+
+function editCar(row) {
+    editIndex = row.rowIndex - 1;
+    document.getElementById('licensePlate').value = row.cells[0].textContent;
+    document.getElementById('carType').value = row.cells[1].textContent;
+    document.getElementById('owner').value = row.cells[2].textContent;
+    document.getElementById('note').value = row.cells[3].textContent;
+    document.getElementById('status').value = getStatusValue(row.cells[4].textContent);
+    document.getElementById('carFormModal').style.display = 'block';
 }
 
-addVehicleForm.onsubmit = addVehicleFormSubmit;
+function deleteCar(row) {
+    row.remove();
+    saveData();
+}
+
+function getStatusText(status) {
+    switch(status) {
+        case 'in-office': return 'Irodában van';
+        case 'completed': return 'Kész';
+        case 'faulty': return 'Hibás';
+        case 'with-courier': return 'Futárnál van';
+        case 'at-dropoff': return 'Leadós helyen van';
+    }
+}
+
+function getStatusValue(statusText) {
+    switch(statusText) {
+        case 'Irodában van': return 'in-office';
+        case 'Kész': return 'completed';
+        case 'Hibás': return 'faulty';
+        case 'Futárnál van': return 'with-courier';
+        case 'Leadós helyen van': return 'at-dropoff';
+    }
+}
+
+function clearForm() {
+    document.getElementById('licensePlate').value = '';
+    document.getElementById('carType').value = '';
+    document.getElementById('owner').value = '';
+    document.getElementById('note').value = '';
+    document.getElementById('status').value = 'in-office';
+}
+
+function saveData() {
+    const carTable = document.getElementById('carTable').getElementsByTagName('tbody')[0];
+    const cars = [];
+
+    for (let i = 0; i < carTable.rows.length; i++) {
+        const row = carTable.rows[i];
+        const car = {
+            licensePlate: row.cells[0].textContent,
+            carType: row.cells[1].textContent,
+            owner: row.cells[2].textContent,
+            note: row.cells[3].textContent,
+            status: getStatusValue(row.cells[4].textContent)
+        };
+        cars.push(car);
+    }
+
+    localStorage.setItem('carData', JSON.stringify(cars));
+}
+
+function loadData() {
+    const carData = localStorage.getItem('carData');
+    if (carData) {
+        const cars = JSON.parse(carData);
+        const carTable = document.getElementById('carTable').getElementsByTagName('tbody')[0];
+        cars.forEach(car => {
+            const newRow = carTable.insertRow();
+            newRow.insertCell(0).textContent = car.licensePlate;
+            newRow.insertCell(1).textContent = car.carType;
+            newRow.insertCell(2).textContent = car.owner;
+            newRow.insertCell(3).textContent = car.note;
+            newRow.insertCell(4).innerHTML = `<span class="status ${car.status}">${getStatusText(car.status)}</span>`;
+            newRow.insertCell(5).innerHTML = '<div class="action-buttons"><button class="editButton">Szerkesztés</button><button class="deleteButton">Törlés</button></div>';
+
+            const editButton = newRow.getElementsByClassName('editButton')[0];
+            const deleteButton = newRow.getElementsByClassName('deleteButton')[0];
+
+            editButton.addEventListener('click', function() {
+                editCar(newRow);
+            });
+
+            deleteButton.addEventListener('click', function() {
+                if (confirm('Biztosan törölni szeretnéd ezt az autót?')) {
+                    deleteCar(newRow);
+                }
+            });
+        });
+    }
+}
+
+window.onload = loadData;
